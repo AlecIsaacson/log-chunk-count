@@ -1,26 +1,23 @@
-# synthetics-failover
+# log-chunk-count
 
-This utility iterates through all locations for all synthetics monitors and for each test found to be running at location nrSource, it replaces it with location nrTarget.
+This utility queries New Relic Insights for a count of log events with chunks.
 
 It expects three arguments:
 
-  * -apikey : A New Relic administrative API key for an account.
-  * -nrSource : The name of a New Relic synthetics location.
-  * -nrTarget : The name of another New Relic synthetics locations.
+  * -apikey : A New Relic Insights query API key for an account.
+  * -account : A New Relic account ID.
+  * -chunks : The maximum number of chunks to query for.
 
-It also supports two optional arguments - one for debugging:
+It also supports an optional argument for debugging:
 
   * -verbose=true
 
-and a simulation mode, where the app runs, but no change are actually made:
+This utility runs the following Insights query:
 
-  * -simulate=true
+  SELECT count(\*) from Log where 'message-NN' is not null
 
-by default, simulation mode is disabled.
+It iterates from message-01 to message-NN where NN is equal to the value of the *chunks* command line argument.
 
-The intent is for this to drive a failover process from one New Relic private location to another, but it can be used for other purposes.
+The output is a CSV of the format chunk number, count.
 
-Example:
-```
-synthetics-failover -apikey=12345 -nrSource=MY_BROKEN_LOCATION -nrTarget=MY_WORKING_LOCATION
-```
+This utility can be used to determine how many New Relic log messages are being chunked into separate fields due to exceeding the 4K limit.
